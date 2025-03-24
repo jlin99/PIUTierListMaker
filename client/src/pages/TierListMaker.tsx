@@ -19,8 +19,8 @@ import { Input } from '@/components/ui/input';
 const TierListMaker: React.FC = () => {
   const [activeTierListId, setActiveTierListId] = useState<number | null>(null);
   const [chartFilter, setChartFilter] = useState<ChartFilter>({
-    mode: 'singles'
-    // No level filter by default to show all charts
+    mode: 'singles',
+    level: 21
   });
   const [showExportModal, setShowExportModal] = useState(false);
   const [showTierEditModal, setShowTierEditModal] = useState(false);
@@ -324,17 +324,11 @@ const TierListMaker: React.FC = () => {
   
   // Handle level change
   const handleLevelChange = (level: number) => {
-    if (level === -1) {
-      // "All levels" selected - remove level from filter
-      const { level, ...rest } = chartFilter;
-      setChartFilter(rest as ChartFilter);
-    } else {
-      // Specific level selected
-      setChartFilter({
-        ...chartFilter,
-        level
-      });
-    }
+    // Specific level selected
+    setChartFilter({
+      ...chartFilter,
+      level
+    });
   };
 
   // Handle drag end
