@@ -98,11 +98,13 @@ export class MemStorage implements IStorage {
       
       if (!hasCorrectMode) return false;
 
-      // Filter by specific level
-      const levels = filter.mode === "singles" ? chart.singlesLevels : chart.doublesLevels;
-      const hasLevel = levels?.some(level => level === filter.level);
-      
-      if (!hasLevel) return false;
+      // Filter by specific level if provided
+      if (filter.level !== undefined) {
+        const levels = filter.mode === "singles" ? chart.singlesLevels : chart.doublesLevels;
+        const hasLevel = levels?.some(level => level === filter.level);
+        
+        if (!hasLevel) return false;
+      }
 
       return true;
     });

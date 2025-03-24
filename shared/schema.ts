@@ -52,7 +52,7 @@ export const chartUploadSchema = z.object({
 // Custom schema for chart validation
 export const chartFilterSchema = z.object({
   mode: z.enum(["singles", "doubles"]),
-  level: z.number().min(1).max(28),
+  level: z.number().min(1).max(28).optional(),
 });
 
 // Export types for use in the application

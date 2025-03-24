@@ -31,9 +31,15 @@ const TierListHeader: React.FC<TierListHeaderProps> = ({
   // Generate level options based on the mode
   const generateLevelOptions = () => {
     const maxLevel = tierList.mode === 'singles' ? 26 : 28;
-    return Array.from({ length: maxLevel }, (_, i) => i + 1).map(num => (
-      <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
-    ));
+    const options = [
+      <SelectItem key="all" value="all">All</SelectItem>
+    ];
+    
+    Array.from({ length: maxLevel }, (_, i) => i + 1).forEach(num => {
+      options.push(<SelectItem key={num} value={num.toString()}>{num}</SelectItem>);
+    });
+    
+    return options;
   };
 
   return (
@@ -93,8 +99,15 @@ const TierListHeader: React.FC<TierListHeaderProps> = ({
           <div className="flex items-center">
             <span className="text-sm text-gray-500 mr-2">Level:</span>
             <Select 
-              value={filter.level.toString()}
-              onValueChange={(value) => onLevelChange(parseInt(value))}
+              value={filter.level !== undefined ? filter.level.toString() : 'all'}
+              onValueChange={(value) => {
+                if (value === 'all') {
+                  // Remove level filter
+                  onLevelChange(-1); // Use -1 to indicate "all levels"
+                } else {
+                  onLevelChange(parseInt(value));
+                }
+              }}
             >
               <SelectTrigger className="w-[80px]">
                 <SelectValue placeholder="Level" />

@@ -4,7 +4,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Chart, Tier, TierList, ChartFilter } from '@shared/schema';
-import { DragDropContext, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import Sidebar from '@/components/Sidebar';
 import TierRow from '@/components/TierRow';
 import TierListHeader from '@/components/TierListHeader';
@@ -19,8 +19,8 @@ import { Input } from '@/components/ui/input';
 const TierListMaker: React.FC = () => {
   const [activeTierListId, setActiveTierListId] = useState<number | null>(null);
   const [chartFilter, setChartFilter] = useState<ChartFilter>({
-    mode: 'singles',
-    level: 21
+    mode: 'singles'
+    // No level filter by default to show all charts
   });
   const [showExportModal, setShowExportModal] = useState(false);
   const [showTierEditModal, setShowTierEditModal] = useState(false);
@@ -324,10 +324,17 @@ const TierListMaker: React.FC = () => {
   
   // Handle level change
   const handleLevelChange = (level: number) => {
-    setChartFilter({
-      ...chartFilter,
-      level
-    });
+    if (level === -1) {
+      // "All levels" selected - remove level from filter
+      const { level, ...rest } = chartFilter;
+      setChartFilter(rest as ChartFilter);
+    } else {
+      // Specific level selected
+      setChartFilter({
+        ...chartFilter,
+        level
+      });
+    }
   };
 
   // Handle drag end
@@ -409,14 +416,20 @@ const TierListMaker: React.FC = () => {
     }
   };
 
-  // Initialize a tier list if none exists
+  // Auto-load Phoenix data when the page loads
   useEffect(() => {
+    // Create a tier list if none exists
     if (tierLists.length > 0 && !activeTierListId) {
       setActiveTierListId(tierLists[0].id);
     } else if (tierLists.length === 0 && !createTierListMutation.isPending) {
       handleNewList();
     }
-  }, [tierLists, activeTierListId]);
+    
+    // Load Phoenix data if no charts exist
+    if (charts.length === 0 && !loadPhoenixDataMutation.isPending) {
+      loadPhoenixDataMutation.mutate();
+    }
+  }, [tierLists, activeTierListId, charts.length]);
 
   // Render tier rows
   const renderTierRows = () => {
@@ -465,22 +478,11 @@ const TierListMaker: React.FC = () => {
           </div>
           <div className="flex gap-3 flex-wrap justify-center">
             <Button 
-              onClick={handleNewList}
-              className="bg-[#7C3AED] hover:bg-opacity-80"
-            >
-              <Plus className="mr-1 h-4 w-4" /> New List
-            </Button>
-            <Button 
               variant="outline" 
               className="bg-white text-[#4C1D95] hover:bg-gray-100 border-none"
-              onClick={() => {
-                toast({
-                  title: "Saved",
-                  description: "Tier list saved successfully",
-                });
-              }}
+              onClick={() => clearTierListMutation.mutate(activeTierListId!)}
             >
-              <Save className="mr-1 h-4 w-4" /> Save
+              <Save className="mr-1 h-4 w-4" /> Reset
             </Button>
             <Button 
               variant="outline" 
@@ -496,7 +498,7 @@ const TierListMaker: React.FC = () => {
               disabled={loadPhoenixDataMutation.isPending}
             >
               <Database className="mr-1 h-4 w-4" /> 
-              {loadPhoenixDataMutation.isPending ? 'Loading...' : 'Load Phoenix Data'}
+              {loadPhoenixDataMutation.isPending ? 'Loading Charts...' : 'Reload Charts'}
             </Button>
           </div>
         </div>

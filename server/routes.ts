@@ -50,17 +50,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chart routes
   app.get('/api/charts', async (req: Request, res: Response) => {
     try {
-      const { mode, minLevel, maxLevel, search } = req.query;
+      const { mode, level } = req.query;
       
       // Validate query parameters
       let filter;
       if (mode) {
-        const filterResult = chartFilterSchema.safeParse({
-          mode,
-          minLevel: minLevel ? parseInt(minLevel as string) : 1,
-          maxLevel: maxLevel ? parseInt(maxLevel as string) : mode === 'singles' ? 26 : 28,
-          search
-        });
+        const filterData: any = { mode };
+        
+        // Add level to filter if provided
+        if (level) {
+          filterData.level = parseInt(level as string);
+        }
+        
+        const filterResult = chartFilterSchema.safeParse(filterData);
         
         if (!filterResult.success) {
           return res.status(400).json({ message: fromZodError(filterResult.error).message });
