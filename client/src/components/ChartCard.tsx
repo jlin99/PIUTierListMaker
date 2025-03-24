@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { Chart } from '@shared/schema';
 import { Draggable } from 'react-beautiful-dnd';
-import { Badge } from '@/components/ui/badge';
 
 interface ChartCardProps {
   chart: Chart;
@@ -12,16 +12,14 @@ interface ChartCardProps {
   onRemove?: (chartId: number) => void;
 }
 
-const ChartCard: React.FC<ChartCardProps> = ({ 
+export const ChartCard: React.FC<ChartCardProps> = ({ 
   chart, 
   index, 
   mode, 
-  level = 21, // Default to level 21 if not provided
+  level = 21,
   isDragDisabled = false,
   onRemove
 }) => {
-
-
   return (
     <Draggable
       draggableId={`chart-${chart.id}`}
@@ -59,5 +57,3 @@ const ChartCard: React.FC<ChartCardProps> = ({
     </Draggable>
   );
 };
-
-export default ChartCard;
