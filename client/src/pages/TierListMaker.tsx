@@ -421,8 +421,12 @@ const TierListMaker: React.FC = () => {
   }, [tierLists, activeTierListId]);
 
   // Load Phoenix data once on mount
+  const loadedRef = useRef(false);
   useEffect(() => {
-    loadPhoenixDataMutation.mutate();
+    if (!loadedRef.current) {
+      loadedRef.current = true;
+      loadPhoenixDataMutation.mutate();
+    }
   }, []);
 
   // Render tier rows
