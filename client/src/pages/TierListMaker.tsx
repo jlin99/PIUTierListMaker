@@ -418,12 +418,15 @@ const TierListMaker: React.FC = () => {
     } else if (tierLists.length === 0 && !createTierListMutation.isPending) {
       handleNewList();
     }
-    
-    // Load Phoenix data if no charts exist
-    if (charts.length === 0 && !loadPhoenixDataMutation.isPending) {
+  }, [tierLists, activeTierListId]);
+
+  // Separate effect for loading Phoenix data
+  useEffect(() => {
+    // Only load Phoenix data once when charts are empty and not already loading
+    if (charts.length === 0 && !loadPhoenixDataMutation.isPending && !loadPhoenixDataMutation.isSuccess) {
       loadPhoenixDataMutation.mutate();
     }
-  }, [tierLists, activeTierListId, charts.length]);
+  }, [charts.length]);
 
   // Render tier rows
   const renderTierRows = () => {
