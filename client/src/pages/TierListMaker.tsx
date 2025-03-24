@@ -12,7 +12,7 @@ import ExportModal from '@/components/modals/ExportModal';
 import TierEditModal from '@/components/modals/TierEditModal';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Save, Download, Plus } from 'lucide-react';
+import { AlertCircle, Save, Download, Plus, Database } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
@@ -277,6 +277,28 @@ const TierListMaker: React.FC = () => {
     }
   });
 
+  // Load Phoenix data mutation
+  const loadPhoenixDataMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/load-phoenix-data', {});
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/charts'] });
+      toast({
+        title: 'Success',
+        description: `${data.message}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: `Failed to load Phoenix data: ${error.message}`,
+        variant: 'destructive',
+      });
+    }
+  });
+
   // Create a new tier list
   const handleNewList = () => {
     createTierListMutation.mutate('My Pump It Up Tier List');
@@ -436,15 +458,17 @@ const TierListMaker: React.FC = () => {
       <header className="bg-[#4C1D95] text-white shadow-md">
         <div className="container mx-auto p-4 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-3 mb-3 md:mb-0">
-            <i className="ri-game-line text-3xl"></i>
+            <div className="w-8 h-8 flex items-center justify-center bg-[#7C3AED] rounded-full">
+              <Database className="h-5 w-5 text-white" />
+            </div>
             <h1 className="font-poppins font-bold text-2xl">Pump It Up Tier List Maker</h1>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap justify-center">
             <Button 
               onClick={handleNewList}
               className="bg-[#7C3AED] hover:bg-opacity-80"
             >
-              <i className="ri-add-line mr-1"></i> New List
+              <Plus className="mr-1 h-4 w-4" /> New List
             </Button>
             <Button 
               variant="outline" 
@@ -456,14 +480,23 @@ const TierListMaker: React.FC = () => {
                 });
               }}
             >
-              <i className="ri-save-line mr-1"></i> Save
+              <Save className="mr-1 h-4 w-4" /> Save
             </Button>
             <Button 
               variant="outline" 
               className="bg-white text-[#4C1D95] hover:bg-gray-100 border-none"
               onClick={() => setShowExportModal(true)}
             >
-              <i className="ri-download-line mr-1"></i> Export
+              <Download className="mr-1 h-4 w-4" /> Export
+            </Button>
+            <Button 
+              variant="outline" 
+              className="bg-white text-[#4C1D95] hover:bg-gray-100 border-none"
+              onClick={() => loadPhoenixDataMutation.mutate()}
+              disabled={loadPhoenixDataMutation.isPending}
+            >
+              <Database className="mr-1 h-4 w-4" /> 
+              {loadPhoenixDataMutation.isPending ? 'Loading...' : 'Load Phoenix Data'}
             </Button>
           </div>
         </div>
