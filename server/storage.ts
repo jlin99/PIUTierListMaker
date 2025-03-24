@@ -90,24 +90,22 @@ export class MemStorage implements IStorage {
     
     if (!filter) return charts;
 
-    return charts.filter(chart => {
+    const filteredCharts = charts.filter(chart => {
       // Filter by mode (singles or doubles)
-      const hasCorrectMode = 
-        (filter.mode === "singles" && chart.singlesLevels && chart.singlesLevels.length > 0) || 
-        (filter.mode === "doubles" && chart.doublesLevels && chart.doublesLevels.length > 0);
-      
-      if (!hasCorrectMode) return false;
+      const levels = filter.mode === "singles" ? chart.singlesLevels : chart.doublesLevels;
+      if (!levels || levels.length === 0) return false;
 
       // Filter by specific level if provided
       if (filter.level !== undefined) {
-        const levels = filter.mode === "singles" ? chart.singlesLevels : chart.doublesLevels;
-        const hasLevel = levels?.some(level => level === filter.level);
-        
-        if (!hasLevel) return false;
+        return levels.includes(filter.level);
       }
 
       return true;
     });
+
+    // Remove duplicates by using a Map with chart ID as key
+    const uniqueCharts = new Map(filteredCharts.map(chart => [chart.id, chart]));
+    return Array.from(uniqueCharts.values());
   }
 
   async getChart(id: number): Promise<Chart | undefined> {
