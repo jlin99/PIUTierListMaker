@@ -164,7 +164,7 @@ const TierListMaker: React.FC = () => {
           tierChartId: `${tier.id}-${chart.id}`
         }))
       );
-      
+
       const tierChart = tierCharts.find(tc => tc.chartId === chartId);
       if (!tierChart) throw new Error('Chart not found in any tier');
 
@@ -211,7 +211,7 @@ const TierListMaker: React.FC = () => {
       // Update existing tiers
       const existingTiers = updatedTiers.filter(tier => tier.id > 0);
       const newTiers = updatedTiers.filter(tier => tier.id < 0);
-      
+
       // Update existing tiers
       for (const tier of existingTiers) {
         await apiRequest('PUT', `/api/tiers/${tier.id}`, {
@@ -220,7 +220,7 @@ const TierListMaker: React.FC = () => {
           position: tier.position
         });
       }
-      
+
       // Create new tiers
       for (const tier of newTiers) {
         await apiRequest('POST', '/api/tiers', {
@@ -229,7 +229,7 @@ const TierListMaker: React.FC = () => {
           position: tier.position
         });
       }
-      
+
       return { success: true };
     },
     onSuccess: () => {
@@ -277,12 +277,17 @@ const TierListMaker: React.FC = () => {
     }
   });
 
-  // Load Phoenix data mutation
-  const loadPhoenixDataMutation = useMutation({
-    mutationFn: async () => {
+  // Load Phoenix data query
+  const loadPhoenixDataQuery = useQuery({
+    queryKey: ['phoenix-data'],
+    queryFn: async () => {
       const res = await apiRequest('POST', '/api/load-phoenix-data', {});
       return res.json();
     },
+    enabled: true,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    retry: false,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/charts'] });
       toast({
@@ -290,7 +295,7 @@ const TierListMaker: React.FC = () => {
         description: `${data.message}`,
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Error',
         description: `Failed to load Phoenix data: ${error.message}`,
@@ -314,14 +319,14 @@ const TierListMaker: React.FC = () => {
   const handleModeChange = (mode: 'singles' | 'doubles') => {
     if (!activeTierListId) return;
     updateTierListMutation.mutate({ id: activeTierListId, data: { mode } });
-    
+
     // Also update the chart filter
     setChartFilter({
       ...chartFilter,
       mode
     });
   };
-  
+
   // Handle level change
   const handleLevelChange = (level: number) => {
     // Specific level selected
@@ -341,14 +346,14 @@ const TierListMaker: React.FC = () => {
     if (source.droppableId === 'chart-library' && destination.droppableId.startsWith('tier-')) {
       const tierId = parseInt(destination.droppableId.split('-')[1]);
       const chartId = parseInt(draggableId.split('-')[2]);
-      
+
       addChartToTierMutation.mutate({
         tierListId: activeTierListId,
         tierId,
         chartId
       });
     }
-    
+
     // Moving between tiers
     else if (
       source.droppableId.startsWith('tier-') && 
@@ -358,7 +363,7 @@ const TierListMaker: React.FC = () => {
       const sourceTierId = parseInt(source.droppableId.split('-')[1]);
       const destinationTierId = parseInt(destination.droppableId.split('-')[1]);
       const chartId = parseInt(draggableId.split('-')[1]);
-      
+
       // Remove from source tier and add to destination tier
       removeChartFromTierMutation.mutate(chartId);
       addChartToTierMutation.mutate({
@@ -378,7 +383,7 @@ const TierListMaker: React.FC = () => {
   const handleTierNameChange = (tierId: number, name: string) => {
     const tier = tiers.find(t => t.id === tierId);
     if (!tier) return;
-    
+
     updateTiersMutation.mutate([{
       ...tier,
       name
@@ -394,16 +399,16 @@ const TierListMaker: React.FC = () => {
     const formData = new FormData();
     formData.append('image', file);
     formData.append('name', file.name.split('.')[0]);
-    
+
     // Add example levels - in a real app, these would come from the JSON file
     const singleLevels = [Math.floor(Math.random() * 26) + 1];
     const doubleLevels = [Math.floor(Math.random() * 28) + 1];
-    
+
     formData.append('singlesLevels', JSON.stringify(singleLevels));
     formData.append('doublesLevels', JSON.stringify(doubleLevels));
-    
+
     uploadChartMutation.mutate(formData);
-    
+
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -420,14 +425,6 @@ const TierListMaker: React.FC = () => {
     }
   }, [tierLists, activeTierListId]);
 
-  // Load Phoenix data once on mount
-  const loadedRef = useRef(false);
-  useEffect(() => {
-    if (!loadedRef.current) {
-      loadedRef.current = true;
-      loadPhoenixDataMutation.mutate();
-    }
-  }, []);
 
   // Render tier rows
   const renderTierRows = () => {
@@ -493,11 +490,11 @@ const TierListMaker: React.FC = () => {
             <Button 
               variant="outline" 
               className="bg-white text-[#4C1D95] hover:bg-gray-100 border-none"
-              onClick={() => loadPhoenixDataMutation.mutate()}
-              disabled={loadPhoenixDataMutation.isPending}
+              onClick={() => loadPhoenixDataQuery.refetch()}
+              disabled={loadPhoenixDataQuery.isLoading}
             >
               <Database className="mr-1 h-4 w-4" /> 
-              {loadPhoenixDataMutation.isPending ? 'Loading Charts...' : 'Reload Charts'}
+              {loadPhoenixDataQuery.isLoading ? 'Loading Charts...' : 'Reload Charts'}
             </Button>
           </div>
         </div>
@@ -521,7 +518,7 @@ const TierListMaker: React.FC = () => {
                 <div className="space-y-4 mb-4" ref={tierListRef}>
                   {renderTierRows()}
                 </div>
-                
+
                 {/* Chart Library Panel for Bottom Placement */}
                 <div className="mt-8 bg-white rounded-lg shadow-md">
                   <h3 className="p-3 font-poppins font-semibold text-lg border-b">Available Charts</h3>
