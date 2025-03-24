@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { TierList, ChartFilter } from '@shared/schema';
+import { TierList, ChartFilter } from '../data/data-types';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface TierListHeaderProps {
@@ -93,7 +93,7 @@ const TierListHeader: React.FC<TierListHeaderProps> = ({
           <div className="flex items-center">
             <span className="text-sm text-gray-500 mr-2">Level:</span>
             <Select 
-              value={filter.level.toString()}
+              value={filter.level !== undefined ? filter.level.toString() : ''}
               onValueChange={(value) => onLevelChange(parseInt(value))}
             >
               <SelectTrigger className="w-[80px]">

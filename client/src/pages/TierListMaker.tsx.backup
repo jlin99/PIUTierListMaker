@@ -1,0 +1,99 @@
+import React, { useState, useEffect } from 'react';
+import { DragDropContext, DropResult } from 'react-beautiful-dnd';
+import Sidebar from '../components/Sidebar';
+import TierRow from '../components/TierRow';
+import { Chart, Tier, TierList } from '../data/data-types';
+import phoenixData from '../data/pump-phoenix.json';
+
+// Default tiers
+const DEFAULT_TIERS: Tier[] = [
+  { name: "Impossible", color: "#EF4444", position: 1 },
+  { name: "Hard", color: "#F97316", position: 2 },
+  { name: "Medium", color: "#EAB308", position: 3 },
+  { name: "Easy", color: "#84CC16", position: 4 },
+  { name: "Free", color: "#22C55E", position: 5 },
+];
+
+export const TierListMaker: React.FC = () => {
+  const [charts, setCharts] = useState<Chart[]>([]);
+  const [tierList, setTierList] = useState<TierList>({
+    name: "My Pump It Up Tier List",
+    mode: "singles",
+    tiers: DEFAULT_TIERS,
+    chartPlacements: {}
+  });
+
+  useEffect(() => {
+    const charts = phoenixData.songs.map((song, index) => ({
+      id: index + 1,
+      name: song.name,
+      imagePath: song.jacket ? `/pump/${song.jacket}` : '/default-chart.svg',
+      singlesLevels: song.charts.filter(chart => chart.diffClass === "S" && chart.style === "solo").map(chart => chart.lvl),
+      doublesLevels: song.charts.filter(chart => chart.diffClass === "D" && chart.style === "solo").map(chart => chart.lvl),
+    }));
+    setCharts(charts);
+  }, []);
+
+  const onFilterChange = (filter: Partial<{ mode: 'singles' | 'doubles', minLevel?: number, maxLevel?: number }>) => {
+    if (filter.mode && filter.mode !== tierList.mode) {
+      setTierList(prev => ({ ...prev, mode: filter.mode as 'singles' | 'doubles', chartPlacements: {} }));
+    }
+  };
+
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const { source, destination, draggableId } = result;
+
+    setTierList(prev => {
+      const newPlacements = { ...prev.chartPlacements };
+
+      if (source.droppableId === 'chart-library') {
+        const chartId = parseInt(draggableId.replace('library-chart-', ''));
+        newPlacements[chartId] = destination.droppableId;
+      } else {
+        const chartId = parseInt(draggableId.replace('placed-chart-', ''));
+        if (destination.droppableId === 'chart-library') {
+          delete newPlacements[chartId];
+        } else {
+          newPlacements[chartId] = destination.droppableId;
+        }
+      }
+
+      return {
+        ...prev,
+        chartPlacements: newPlacements
+      };
+    });
+  };
+
+  return (
+    <DragDropContext onDragEnd={onDragEnd}>
+      <main className="min-h-screen bg-gray-100 p-4">
+        <section className="max-w-screen-xl mx-auto grid grid-cols-1 md:grid-cols-[1fr_300px] gap-4">
+          <div className="space-y-4">
+            <h1 className="font-poppins text-2xl font-bold">Pump It Up {tierList.mode === 'singles' ? 'Singles' : 'Doubles'} Tier List</h1>
+            <div className="space-y-2">
+              {DEFAULT_TIERS.map((tier) => (
+                <TierRow
+                  key={tier.name}
+                  tier={tier}
+                  charts={charts.filter(c => tierList.chartPlacements[c.id] === tier.name)}
+                  mode={tierList.mode as 'singles' | 'doubles'}
+                  onTierNameChange={() => {}}
+                  onRemoveChart={() => {}}
+                />
+              ))}
+            </div>
+          </div>
+          <Sidebar
+            charts={charts.filter(c => !tierList.chartPlacements[c.id])}
+            filter={{ mode: tierList.mode as 'singles' | 'doubles' }}
+            onFilterChange={onFilterChange}
+            isLoading={false}
+          />
+        </section>
+      </main>
+    </DragDropContext>
+  );
+};

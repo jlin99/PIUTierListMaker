@@ -1,8 +1,7 @@
-
 import React from 'react';
-import { Droppable } from 'react-beautiful-dnd';
-import { Chart, Tier } from '@shared/schema';
-import { ChartCard } from './ChartCard';
+import { Tier, Chart } from '../data/data-types';
+import { useDroppable } from '@dnd-kit/core';
+import ChartCard from './ChartCard';
 
 interface TierRowProps {
   tier: Tier;
@@ -13,17 +12,21 @@ interface TierRowProps {
   onRemoveChart: (chartId: number) => void;
 }
 
-export const TierRow: React.FC<TierRowProps> = ({
-  tier,
-  charts,
+const TierRow: React.FC<TierRowProps> = ({ 
+  tier, 
+  charts, 
   mode,
-  level,
+  level = 21, 
   onTierNameChange,
-  onRemoveChart
+  onRemoveChart 
 }) => {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onTierNameChange(tier.id, e.target.value);
+    onTierNameChange(tier.position, e.target.value);
   };
+
+  const { isOver, setNodeRef } = useDroppable({
+    id: `tier-${tier.position}`,
+  });
 
   return (
     <div className="tier-row">
@@ -39,31 +42,27 @@ export const TierRow: React.FC<TierRowProps> = ({
             className="bg-transparent text-white font-bold text-center w-full focus:outline-none"
           />
         </div>
-        <Droppable droppableId={`tier-${tier.id}`} direction="horizontal">
-          {(provided, snapshot) => (
-            <div 
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              className={`flex-1 min-h-[90px] bg-white rounded-r-lg border-2 p-2 flex flex-wrap gap-2 ${
-                snapshot.isDraggingOver ? 'bg-gray-100' : ''
-              }`}
-              style={{ borderColor: tier.color }}
-            >
-              {charts.map((chart, index) => (
-                <ChartCard 
-                  key={chart.id} 
-                  chart={chart} 
-                  index={index} 
-                  mode={mode}
-                  level={level}
-                  onRemove={onRemoveChart}
-                />
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
+        <div 
+          ref={setNodeRef}
+          className={`flex-1 min-h-[90px] bg-white rounded-r-lg border-2 p-2 flex flex-wrap gap-2 ${
+            isOver ? 'bg-gray-100' : ''
+          }`}
+          style={{ borderColor: tier.color }}
+        >
+          {charts.map((chart, index) => (
+            <ChartCard 
+              key={chart.id}
+              chart={chart} 
+              index={index} 
+              mode={mode}
+              level={level}
+              onRemove={onRemoveChart}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
 };
+
+export default TierRow;

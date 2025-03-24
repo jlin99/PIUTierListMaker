@@ -1,5 +1,4 @@
-
-import { Chart } from '@shared/schema';
+import { Chart } from './data-types';
 
 // Import Phoenix data
 import phoenixData from './pump-phoenix.json';
@@ -28,9 +27,9 @@ export function getPhoenixCharts(): Chart[] {
     }
 
     charts.push({
-      id: charts.length + 1,
+      id: Number(song.saIndex),
       name: song.name,
-      imagePath: song.jacket ? `/pump/${song.jacket}` : '/default-chart.svg',
+      imagePath: song.jacket,
       singlesLevels: singlesLevels.length > 0 ? singlesLevels : null,
       doublesLevels: doublesLevels.length > 0 ? doublesLevels : null
     });
