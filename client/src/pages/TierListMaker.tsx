@@ -435,6 +435,7 @@ const TierListMaker: React.FC = () => {
         tier={tierWithCharts}
         charts={tierWithCharts.charts || []}
         mode={activeTierList.mode}
+        level={chartFilter.level}
         onTierNameChange={handleTierNameChange}
         onRemoveChart={handleRemoveChart}
       />
@@ -540,29 +541,18 @@ const TierListMaker: React.FC = () => {
                                     ref={provided.innerRef}
                                     {...provided.draggableProps}
                                     {...provided.dragHandleProps}
-                                    className={`chart-item bg-gray-100 rounded-lg p-2 flex flex-col items-center cursor-move hover:bg-gray-200 transition w-[100px] h-[100px] ${
+                                    className={`chart-item bg-gray-100 rounded-lg p-2 cursor-move hover:bg-gray-200 transition w-[80px] h-[80px] relative group ${
                                       snapshot.isDragging ? 'shadow-lg' : ''
                                     }`}
+                                    title={chart.name}
                                   >
                                     <img 
                                       src={chart.imagePath || "https://via.placeholder.com/60"} 
                                       alt={chart.name} 
-                                      className="w-14 h-14 rounded object-cover"
+                                      className="w-full h-full rounded object-cover"
                                     />
-                                    <div className="mt-2 text-center">
-                                      <h4 className="font-medium text-xs truncate w-full">{chart.name}</h4>
-                                      <div className="flex gap-1 mt-1 justify-center">
-                                        {chart.singlesLevels?.map(level => (
-                                          <span key={`s-${level}`} className="bg-[#7C3AED] text-white text-xs px-1.5 py-0.5 rounded">
-                                            S{level}
-                                          </span>
-                                        ))}
-                                        {chart.doublesLevels?.map(level => (
-                                          <span key={`d-${level}`} className="bg-gray-700 text-white text-xs px-1.5 py-0.5 rounded">
-                                            D{level}
-                                          </span>
-                                        ))}
-                                      </div>
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center rounded-lg">
+                                      <p className="text-white text-xs text-center px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">{chart.name}</p>
                                     </div>
                                   </div>
                                 )}

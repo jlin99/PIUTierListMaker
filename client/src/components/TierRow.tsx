@@ -7,6 +7,7 @@ interface TierRowProps {
   tier: Tier;
   charts: Chart[];
   mode: 'singles' | 'doubles';
+  level?: number;
   onTierNameChange: (tierId: number, name: string) => void;
   onRemoveChart: (chartId: number) => void;
 }
@@ -14,7 +15,8 @@ interface TierRowProps {
 const TierRow: React.FC<TierRowProps> = ({ 
   tier, 
   charts, 
-  mode, 
+  mode,
+  level = 21, 
   onTierNameChange,
   onRemoveChart 
 }) => {
@@ -52,6 +54,7 @@ const TierRow: React.FC<TierRowProps> = ({
                   chart={chart} 
                   index={index} 
                   mode={mode}
+                  level={level}
                   onRemove={onRemoveChart}
                 />
               ))}

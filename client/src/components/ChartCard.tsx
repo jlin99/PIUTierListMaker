@@ -20,30 +20,7 @@ const ChartCard: React.FC<ChartCardProps> = ({
   isDragDisabled = false,
   onRemove
 }) => {
-  const getChartLevels = () => {
-    // Show only the level that matches the current selected mode and level
-    let badgeContent: React.ReactNode = null;
-    
-    if (mode === 'singles' && chart.singlesLevels?.includes(level)) {
-      badgeContent = (
-        <Badge key={`singles-${level}`} className="bg-[#7C3AED] hover:bg-[#7C3AED] text-white">
-          S{level}
-        </Badge>
-      );
-    } else if (mode === 'doubles' && chart.doublesLevels?.includes(level)) {
-      badgeContent = (
-        <Badge key={`doubles-${level}`} className="bg-gray-700 hover:bg-gray-700 text-white">
-          D{level}
-        </Badge>
-      );
-    }
-    
-    return (
-      <div className="flex gap-1 mt-1">
-        {badgeContent}
-      </div>
-    );
-  };
+
 
   return (
     <Draggable
@@ -56,25 +33,25 @@ const ChartCard: React.FC<ChartCardProps> = ({
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`chart-item bg-gray-100 rounded-lg p-2 flex gap-3 cursor-move hover:bg-gray-200 transition ${
+          className={`chart-item bg-gray-100 rounded-lg p-2 cursor-move hover:bg-gray-200 transition relative group ${
             snapshot.isDragging ? 'shadow-lg' : ''
           }`}
+          title={chart.name}
         >
           <img 
             src={chart.imagePath || "https://via.placeholder.com/60"} 
             alt={chart.name} 
-            className="w-14 h-14 rounded object-cover"
+            className="w-16 h-16 rounded object-cover mx-auto"
           />
-          <div className="flex-1 min-w-0">
-            <h4 className="font-medium text-sm truncate">{chart.name}</h4>
-            {getChartLevels()}
+          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center rounded-lg">
+            <p className="text-white text-xs text-center px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">{chart.name}</p>
           </div>
           {onRemove && (
             <button 
               onClick={() => onRemove(chart.id)}
-              className="text-gray-400 hover:text-red-500 self-start"
+              className="absolute top-1 right-1 text-white bg-gray-800 rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             >
-              <i className="ri-close-line text-lg"></i>
+              <span className="text-xs">×</span>
             </button>
           )}
         </div>
