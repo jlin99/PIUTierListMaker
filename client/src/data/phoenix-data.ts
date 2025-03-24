@@ -2,7 +2,7 @@
 import { Chart } from '@shared/schema';
 
 // Import Phoenix data
-import phoenixData from '../../server/pump-phoenix.json';
+import phoenixData from './pump-phoenix.json';
 
 // Process Phoenix data into chart format
 export function getPhoenixCharts(): Chart[] {
