@@ -1,7 +1,8 @@
+
 import React from 'react';
-import { Tier, Chart } from '@shared/schema';
 import { Droppable } from 'react-beautiful-dnd';
-import ChartCard from './ChartCard';
+import { Chart, Tier } from '@shared/schema';
+import { ChartCard } from './ChartCard';
 
 interface TierRowProps {
   tier: Tier;
@@ -12,13 +13,13 @@ interface TierRowProps {
   onRemoveChart: (chartId: number) => void;
 }
 
-const TierRow: React.FC<TierRowProps> = ({ 
-  tier, 
-  charts, 
+export const TierRow: React.FC<TierRowProps> = ({
+  tier,
+  charts,
   mode,
-  level = 21, 
+  level,
   onTierNameChange,
-  onRemoveChart 
+  onRemoveChart
 }) => {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onTierNameChange(tier.id, e.target.value);
@@ -66,5 +67,3 @@ const TierRow: React.FC<TierRowProps> = ({
     </div>
   );
 };
-
-export default TierRow;
