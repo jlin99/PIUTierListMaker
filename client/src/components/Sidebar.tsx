@@ -25,25 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ charts, filter, onFilterChange, isLoa
   // Handle filter changes
   const handleModeChange = (value: string) => {
     const mode = value as 'singles' | 'doubles';
-    const maxLevel = mode === 'singles' ? 26 : 28;
-    onFilterChange({ 
-      mode, 
-      maxLevel: Math.min(filter.maxLevel, maxLevel),
-    });
-  };
-
-  const handleMinLevelChange = (value: string) => {
-    const minLevel = parseInt(value);
-    onFilterChange({ minLevel });
-  };
-
-  const handleMaxLevelChange = (value: string) => {
-    const maxLevel = parseInt(value);
-    onFilterChange({ maxLevel });
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onFilterChange({ search: e.target.value });
+    onFilterChange({ mode });
   };
 
   return (
@@ -81,55 +63,21 @@ const Sidebar: React.FC<SidebarProps> = ({ charts, filter, onFilterChange, isLoa
 
       {/* Level Filter */}
       <div className="mb-6">
-        <h3 className="font-medium text-sm text-gray-500 mb-2">LEVEL RANGE</h3>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="text-xs text-gray-500">Min</label>
-            <Select 
-              value={filter.minLevel.toString()} 
-              onValueChange={handleMinLevelChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Min Level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {generateLevelOptions(filter.mode === 'singles' ? 26 : 28)}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <label className="text-xs text-gray-500">Max</label>
-            <Select 
-              value={filter.maxLevel.toString()} 
-              onValueChange={handleMaxLevelChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Max Level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {generateLevelOptions(filter.mode === 'singles' ? 26 : 28)}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="mb-6">
-        <h3 className="font-medium text-sm text-gray-500 mb-2">SEARCH</h3>
-        <div className="relative">
-          <Input
-            type="text"
-            placeholder="Song name..."
-            value={filter.search || ''}
-            onChange={handleSearchChange}
-            className="w-full pl-9"
-          />
-          <i className="ri-search-line absolute left-3 top-2.5 text-gray-400"></i>
+        <h3 className="font-medium text-sm text-gray-500 mb-2">LEVEL</h3>
+        <div>
+          <Select 
+            value={filter.level.toString()} 
+            onValueChange={(value) => onFilterChange({ level: parseInt(value) })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {generateLevelOptions(filter.mode === 'singles' ? 26 : 28)}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

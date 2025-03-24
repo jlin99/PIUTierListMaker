@@ -98,18 +98,11 @@ export class MemStorage implements IStorage {
       
       if (!hasCorrectMode) return false;
 
-      // Filter by level range
+      // Filter by specific level
       const levels = filter.mode === "singles" ? chart.singlesLevels : chart.doublesLevels;
-      const withinLevelRange = levels?.some(level => 
-        level >= filter.minLevel && level <= filter.maxLevel
-      );
+      const hasLevel = levels?.some(level => level === filter.level);
       
-      if (!withinLevelRange) return false;
-
-      // Filter by search term
-      if (filter.search && filter.search.trim() !== "") {
-        return chart.name.toLowerCase().includes(filter.search.toLowerCase());
-      }
+      if (!hasLevel) return false;
 
       return true;
     });

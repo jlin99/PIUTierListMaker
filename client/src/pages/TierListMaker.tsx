@@ -20,9 +20,7 @@ const TierListMaker: React.FC = () => {
   const [activeTierListId, setActiveTierListId] = useState<number | null>(null);
   const [chartFilter, setChartFilter] = useState<ChartFilter>({
     mode: 'singles',
-    minLevel: 1,
-    maxLevel: 26,
-    search: ''
+    level: 21
   });
   const [showExportModal, setShowExportModal] = useState(false);
   const [showTierEditModal, setShowTierEditModal] = useState(false);
@@ -298,8 +296,7 @@ const TierListMaker: React.FC = () => {
     // Also update the chart filter
     setChartFilter({
       ...chartFilter,
-      mode,
-      maxLevel: mode === 'singles' ? 26 : 28
+      mode
     });
   };
 
@@ -464,17 +461,9 @@ const TierListMaker: React.FC = () => {
 
       {/* Main Content */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <main className="flex-grow container mx-auto p-4 flex flex-col md:flex-row gap-6">
-          {/* Sidebar */}
-          <Sidebar
-            charts={charts}
-            filter={chartFilter}
-            onFilterChange={(filter) => setChartFilter({ ...chartFilter, ...filter })}
-            isLoading={isLoadingCharts}
-          />
-
+        <main className="flex-grow container mx-auto p-4 flex flex-col gap-6">
           {/* Tier List Container */}
-          <section className="flex-1">
+          <section className="max-w-4xl mx-auto w-full">
             {isLoadingTierList ? (
               <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7C3AED]"></div>
@@ -488,38 +477,67 @@ const TierListMaker: React.FC = () => {
                 <div className="space-y-4 mb-4" ref={tierListRef}>
                   {renderTierRows()}
                 </div>
-
-                {/* Upload Section */}
-                <div className="bg-white rounded-lg shadow-md p-4">
-                  <h3 className="font-poppins font-semibold text-lg mb-3">Import Chart Data</h3>
-                  <div 
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center"
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const files = e.dataTransfer.files;
-                      if (files && files.length > 0 && fileInputRef.current) {
-                        fileInputRef.current.files = files;
-                        handleFileUpload({ target: { files } } as any);
-                      }
-                    }}
-                  >
-                    <i className="ri-upload-cloud-2-line text-4xl text-gray-400 mb-2"></i>
-                    <p className="text-gray-500 mb-3">Drag and drop your chart folder or click to browse</p>
-                    <Button 
-                      className="bg-[#4C1D95] hover:bg-opacity-90"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      Browse Files
-                    </Button>
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      ref={fileInputRef}
-                      onChange={handleFileUpload}
-                      accept="image/*"
-                    />
-                    <p className="text-xs text-gray-400 mt-3">Supports folder upload with JPG images and JSON data files</p>
+                
+                {/* Chart Library Panel for Bottom Placement */}
+                <div className="mt-8 bg-white rounded-lg shadow-md">
+                  <h3 className="p-3 font-poppins font-semibold text-lg border-b">Available Charts</h3>
+                  <div className="p-4 flex flex-wrap gap-3 min-h-[120px]">
+                    {isLoadingCharts ? (
+                      <div className="flex justify-center items-center w-full h-24">
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#7C3AED]"></div>
+                      </div>
+                    ) : charts.length > 0 ? (
+                      <Droppable droppableId="chart-library" direction="horizontal">
+                        {(provided) => (
+                          <div 
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            className="w-full flex flex-wrap gap-3"
+                          >
+                            {charts.map((chart, index) => (
+                              <Draggable key={chart.id} draggableId={`library-chart-${chart.id}`} index={index}>
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    className={`chart-item bg-gray-100 rounded-lg p-2 flex flex-col items-center cursor-move hover:bg-gray-200 transition w-[100px] h-[100px] ${
+                                      snapshot.isDragging ? 'shadow-lg' : ''
+                                    }`}
+                                  >
+                                    <img 
+                                      src={chart.imagePath || "https://via.placeholder.com/60"} 
+                                      alt={chart.name} 
+                                      className="w-14 h-14 rounded object-cover"
+                                    />
+                                    <div className="mt-2 text-center">
+                                      <h4 className="font-medium text-xs truncate w-full">{chart.name}</h4>
+                                      <div className="flex gap-1 mt-1 justify-center">
+                                        {chart.singlesLevels?.map(level => (
+                                          <span key={`s-${level}`} className="bg-[#7C3AED] text-white text-xs px-1.5 py-0.5 rounded">
+                                            S{level}
+                                          </span>
+                                        ))}
+                                        {chart.doublesLevels?.map(level => (
+                                          <span key={`d-${level}`} className="bg-gray-700 text-white text-xs px-1.5 py-0.5 rounded">
+                                            D{level}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    ) : (
+                      <div className="text-center text-gray-500 py-4 w-full">
+                        No charts found. Try adjusting level filter.
+                      </div>
+                    )}
                   </div>
                 </div>
               </>
