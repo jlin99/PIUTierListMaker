@@ -420,13 +420,10 @@ const TierListMaker: React.FC = () => {
     }
   }, [tierLists, activeTierListId]);
 
-  // Separate effect for loading Phoenix data
+  // Load Phoenix data once on mount
   useEffect(() => {
-    // Only load Phoenix data once when charts are empty and not already loading
-    if (charts.length === 0 && !loadPhoenixDataMutation.isPending && !loadPhoenixDataMutation.isSuccess) {
-      loadPhoenixDataMutation.mutate();
-    }
-  }, [charts.length]);
+    loadPhoenixDataMutation.mutate();
+  }, []);
 
   // Render tier rows
   const renderTierRows = () => {
