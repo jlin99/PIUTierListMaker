@@ -426,10 +426,10 @@ const TierListMaker: React.FC = () => {
   }, [tierLists, activeTierListId]);
 
   useEffect(() => {
-    if (charts.length === 0) {
+    if (charts.length === 0 && !loadPhoenixDataQuery.isSuccess) {
       loadPhoenixDataQuery.refetch();
     }
-  }, [charts, loadPhoenixDataQuery]);
+  }, []);
 
 
   // Render tier rows
