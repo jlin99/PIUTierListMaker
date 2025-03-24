@@ -299,6 +299,14 @@ const TierListMaker: React.FC = () => {
       mode
     });
   };
+  
+  // Handle level change
+  const handleLevelChange = (level: number) => {
+    setChartFilter({
+      ...chartFilter,
+      level
+    });
+  };
 
   // Handle drag end
   const handleDragEnd = (result: DropResult) => {
@@ -411,11 +419,13 @@ const TierListMaker: React.FC = () => {
     return (
       <TierListHeader
         tierList={activeTierList}
+        filter={chartFilter}
         onNameChange={handleNameChange}
         onAddTier={() => setShowTierEditModal(true)}
         onEditTiers={() => setShowTierEditModal(true)}
         onClearAll={() => clearTierListMutation.mutate(activeTierListId!)}
         onModeChange={handleModeChange}
+        onLevelChange={handleLevelChange}
       />
     );
   };

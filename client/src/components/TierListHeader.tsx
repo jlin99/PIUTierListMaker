@@ -1,26 +1,39 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { TierList } from '@shared/schema';
+import { TierList, ChartFilter } from '@shared/schema';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface TierListHeaderProps {
   tierList: TierList;
+  filter: ChartFilter;
   onNameChange: (name: string) => void;
   onAddTier: () => void;
   onEditTiers: () => void;
   onClearAll: () => void;
   onModeChange: (mode: 'singles' | 'doubles') => void;
+  onLevelChange: (level: number) => void;
 }
 
 const TierListHeader: React.FC<TierListHeaderProps> = ({
   tierList,
+  filter,
   onNameChange,
   onAddTier,
   onEditTiers,
   onClearAll,
-  onModeChange
+  onModeChange,
+  onLevelChange
 }) => {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onNameChange(e.target.value);
+  };
+
+  // Generate level options based on the mode
+  const generateLevelOptions = () => {
+    const maxLevel = tierList.mode === 'singles' ? 26 : 28;
+    return Array.from({ length: maxLevel }, (_, i) => i + 1).map(num => (
+      <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+    ));
   };
 
   return (
@@ -56,21 +69,42 @@ const TierListHeader: React.FC<TierListHeaderProps> = ({
             <i className="ri-delete-bin-line mr-1"></i> Clear All
           </Button>
         </div>
-        <div className="flex items-center">
-          <span className="text-sm text-gray-500 mr-2">Mode:</span>
-          <div className="bg-gray-200 rounded-md p-1 flex">
-            <button 
-              className={`px-3 py-1 text-sm ${tierList.mode === 'singles' ? 'bg-white rounded shadow' : 'text-gray-700'}`}
-              onClick={() => onModeChange('singles')}
+        <div className="flex items-center gap-4">
+          {/* Mode Selector */}
+          <div className="flex items-center">
+            <span className="text-sm text-gray-500 mr-2">Mode:</span>
+            <div className="bg-gray-200 rounded-md p-1 flex">
+              <button 
+                className={`px-3 py-1 text-sm ${tierList.mode === 'singles' ? 'bg-white rounded shadow' : 'text-gray-700'}`}
+                onClick={() => onModeChange('singles')}
+              >
+                Singles
+              </button>
+              <button 
+                className={`px-3 py-1 text-sm ${tierList.mode === 'doubles' ? 'bg-white rounded shadow' : 'text-gray-700'}`}
+                onClick={() => onModeChange('doubles')}
+              >
+                Doubles
+              </button>
+            </div>
+          </div>
+          
+          {/* Level Selector */}
+          <div className="flex items-center">
+            <span className="text-sm text-gray-500 mr-2">Level:</span>
+            <Select 
+              value={filter.level.toString()}
+              onValueChange={(value) => onLevelChange(parseInt(value))}
             >
-              Singles
-            </button>
-            <button 
-              className={`px-3 py-1 text-sm ${tierList.mode === 'doubles' ? 'bg-white rounded shadow' : 'text-gray-700'}`}
-              onClick={() => onModeChange('doubles')}
-            >
-              Doubles
-            </button>
+              <SelectTrigger className="w-[80px]">
+                <SelectValue placeholder="Level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {generateLevelOptions()}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
