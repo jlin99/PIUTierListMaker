@@ -7,6 +7,18 @@ import fs from "fs";
 import { insertChartSchema, chartFilterSchema, insertTierSchema, insertTierListSchema, insertTierChartSchema } from "@shared/schema";
 import { fromZodError } from "zod-validation-error";
 
+// Load the Pump It Up Phoenix data
+const phoenixDataPath = path.join(process.cwd(), 'server/pump-phoenix.json');
+let phoenixData: any = null;
+
+try {
+  const data = fs.readFileSync(phoenixDataPath, 'utf8');
+  phoenixData = JSON.parse(data);
+  console.log('Loaded Pump It Up Phoenix data successfully');
+} catch (error) {
+  console.error('Error loading Pump It Up Phoenix data:', error);
+}
+
 // Set up multer for file uploads
 const upload = multer({
   storage: multer.diskStorage({
@@ -346,6 +358,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(201).json({ charts });
     } catch (error) {
       handleError(error, res);
+    }
+  });
+
+  // Load charts from Pump Phoenix JSON data
+  app.post('/api/load-phoenix-data', async (_req: Request, res: Response) => {
+    try {
+      if (!phoenixData || !phoenixData.songs) {
+        return res.status(500).json({ message: 'Phoenix data not loaded or corrupted' });
+      }
+
+      const charts = [];
+      const songs = phoenixData.songs;
+
+      for (const song of songs) {
+        // Extract singles and doubles levels from charts
+        const singlesLevels: number[] = [];
+        const doublesLevels: number[] = [];
+
+        if (song.charts) {
+          for (const chart of song.charts) {
+            if (chart.diffClass === "S" && chart.style === "solo") {
+              singlesLevels.push(Number(chart.lvl));
+            } else if (chart.diffClass === "D" && chart.style === "solo") {
+              doublesLevels.push(Number(chart.lvl));
+            }
+          }
+        }
+
+        // Skip songs without any charts
+        if (singlesLevels.length === 0 && doublesLevels.length === 0) {
+          continue;
+        }
+
+        // Create chart data
+        const chartData = {
+          name: song.name,
+          imagePath: song.jacket ? `/api/phoenix-jacket/${encodeURIComponent(song.jacket)}` : '',
+          singlesLevels: singlesLevels.length > 0 ? singlesLevels : null,
+          doublesLevels: doublesLevels.length > 0 ? doublesLevels : null
+        };
+
+        // Validate and create chart
+        const result = insertChartSchema.safeParse(chartData);
+        if (result.success) {
+          const chart = await storage.createChart(result.data);
+          charts.push(chart);
+        }
+      }
+
+      return res.status(200).json({ 
+        success: true, 
+        message: `Successfully loaded ${charts.length} charts from Phoenix data`,
+        charts 
+      });
+    } catch (error) {
+      handleError(error, res);
+    }
+  });
+
+  // Serve phoenix jacket images
+  app.get('/api/phoenix-jacket/:filename', (req: Request, res: Response) => {
+    try {
+      const filename = decodeURIComponent(req.params.filename);
+      // Default image path (fallback)
+      const defaultImagePath = path.join(process.cwd(), 'public', 'default-chart.svg');
+      
+      // Extract the song name for display in the default image
+      let songName = "Unknown";
+      if (filename.startsWith('pump/')) {
+        const jacketId = filename.replace('pump/', '').replace('.jpg', '');
+        // Find song by jacket path
+        const song = phoenixData?.songs?.find((s: any) => s.jacket === filename);
+        if (song) {
+          songName = song.name;
+        }
+      }
+      
+      // For now, we'll always use the default image
+      // In a real implementation, you would serve the actual image files
+      if (fs.existsSync(defaultImagePath)) {
+        // Read SVG and update text content with song name if available
+        let svgContent = fs.readFileSync(defaultImagePath, 'utf8');
+        
+        // Replace placeholder text with song name if found
+        if (songName !== "Unknown") {
+          // Simple text replacement - this is a basic approach
+          // For more complex SVG manipulation, use a proper XML parser
+          svgContent = svgContent.replace('>No Image<', `>${songName.substring(0, 15)}${songName.length > 15 ? '...' : ''}<`);
+        }
+        
+        res.setHeader('Content-Type', 'image/svg+xml');
+        return res.send(svgContent);
+      } else {
+        return res.status(404).send('Default image not found');
+      }
+    } catch (error) {
+      handleError(error as Error, res);
     }
   });
 
