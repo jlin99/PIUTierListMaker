@@ -284,7 +284,7 @@ const TierListMaker: React.FC = () => {
       const res = await apiRequest('POST', '/api/load-phoenix-data', {});
       return res.json();
     },
-    enabled: true,
+    enabled: false, // Disabled by default
     staleTime: Infinity,
     gcTime: Infinity,
     retry: false,
@@ -424,6 +424,12 @@ const TierListMaker: React.FC = () => {
       handleNewList();
     }
   }, [tierLists, activeTierListId]);
+
+  useEffect(() => {
+    if (charts.length === 0) {
+      loadPhoenixDataQuery.refetch();
+    }
+  }, [charts, loadPhoenixDataQuery]);
 
 
   // Render tier rows
