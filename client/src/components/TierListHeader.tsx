@@ -54,20 +54,6 @@ const TierListHeader: React.FC<TierListHeaderProps> = ({
           >
             <i className="ri-add-line mr-1"></i> Add Tier
           </Button>
-          <Button 
-            variant="outline" 
-            className="text-sm"
-            onClick={onEditTiers}
-          >
-            <i className="ri-edit-line mr-1"></i> Edit Tiers
-          </Button>
-          <Button 
-            variant="outline" 
-            className="text-sm"
-            onClick={onClearAll}
-          >
-            <i className="ri-delete-bin-line mr-1"></i> Clear All
-          </Button>
         </div>
         <div className="flex items-center gap-4">
           {/* Mode Selector */}

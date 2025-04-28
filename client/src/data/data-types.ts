@@ -6,6 +6,7 @@ export const chartFilterSchema = z.object({
   });
 
 export type Tier= {
+    tierId: string;
     name: string;
     color: string;
     position: number;

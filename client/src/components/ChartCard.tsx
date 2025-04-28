@@ -1,7 +1,9 @@
 import React from 'react';
 import { Chart } from '../data/data-types';
-import { useDraggable } from '@dnd-kit/core';
-import { Badge } from '@/components/ui/badge';
+import { draggable } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import { useEffect, useRef, useState } from 'react';
+import invariant from 'tiny-invariant';
+import { cn } from "@/lib/utils"
 
 interface ChartCardProps {
   chart: Chart;
@@ -10,49 +12,46 @@ interface ChartCardProps {
   level?: number;
   isDragDisabled?: boolean;
   onRemove?: (chartId: number) => void;
+  tierId?: number;
 }
 
 const ChartCard: React.FC<ChartCardProps> = ({ 
-  chart, 
-  index, 
-  mode, 
-  level = 21, // Default to level 21 if not provided
-  isDragDisabled = false,
-  onRemove
+  chart,
+  index,
+  mode,
+  level,
+  tierId,
 }) => {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: `chart-${chart.id}`,
-  });
+  const ref = useRef<HTMLImageElement>(null);
+  const [dragging, setDragging] = useState<boolean>(false);
 
-  const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-  } : undefined;
+  useEffect(() => {
+    const el = ref.current;
+    invariant(el);
+
+    return draggable({
+      element: el,
+      getInitialData: () => ({
+        type: 'chart',
+        chart,
+        index,
+        mode,
+        level,
+        tierId,
+        rect: el.getBoundingClientRect(),
+      }),
+      onDragStart: () => setDragging(true),
+      onDrop: () => setDragging(false),
+    });
+  }, [chart, index, mode, level, tierId]);
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...listeners}
-      {...attributes}
-      className={`chart-item bg-gray-100 rounded-lg p-2 cursor-move hover:bg-gray-200 transition relative group ${
-        isDragDisabled ? 'opacity-50' : ''
-      }`}
-      title={chart.name}
-    >
-      <img 
-        src={chart.imagePath} 
-        alt={chart.name} 
-        className="w-16 h-16 rounded object-cover mx-auto"
-      />
-      {onRemove && (
-        <button 
-          onClick={() => onRemove(chart.id)}
-          className="absolute top-1 right-1 text-white bg-gray-800 rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <span className="text-xs">×</span>
-        </button>
-      )}
-    </div>
+    <img
+      className={cn("h-20 w-20", dragging && "opacity-40")}
+      src={chart.imagePath}
+      alt={chart.name}
+      ref={ref}
+    />
   );
 };
 
