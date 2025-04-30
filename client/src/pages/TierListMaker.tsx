@@ -47,7 +47,7 @@ const TierListMaker: React.FC = () => {
     if (tierLists.length === 0) {
       const defaultTierList: TierList = {
         id: 1,
-        name: 'My Tier List',
+        name: `${chartFilter.mode === 'singles' ? 'S' : 'D'}${chartFilter.level} Tier List`,
         mode: 'singles',
         tiers: [
             { name: "Impossible", color: "#EF4444", position: 1, charts: [] },
@@ -378,9 +378,6 @@ const TierListMaker: React.FC = () => {
       <header className="bg-[#4C1D95] text-white shadow-md">
         <div className="container mx-auto p-4 flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-3 mb-3 md:mb-0">
-            <div className="w-8 h-8 flex items-center justify-center bg-[#7C3AED] rounded-full">
-              <Database className="h-5 w-5 text-white" />
-            </div>
             <h1 className="font-poppins font-bold text-2xl">Pump It Up Tier List Maker</h1>
           </div>
           <div className="flex gap-3 flex-wrap justify-center">

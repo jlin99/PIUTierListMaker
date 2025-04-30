@@ -46,7 +46,7 @@ const TierListHeader: React.FC<TierListHeaderProps> = ({
       />
       
       <div className="flex flex-wrap gap-3 justify-between items-center">
-        <div className="flex flex-wrap gap-2">
+        {/* <div className="flex flex-wrap gap-2">
           <Button 
             variant="outline" 
             className="text-sm"
@@ -54,7 +54,7 @@ const TierListHeader: React.FC<TierListHeaderProps> = ({
           >
             <i className="ri-add-line mr-1"></i> Add Tier
           </Button>
-        </div>
+        </div> */}
         <div className="flex items-center gap-4">
           {/* Mode Selector */}
           <div className="flex items-center">
