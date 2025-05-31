@@ -1,6 +1,7 @@
 'use client';
 
 import React, { memo, useEffect, useRef, useState } from 'react';
+import { FaEdit, FaCheck } from 'react-icons/fa';
 import { Tier, Chart } from '../data/data-types';
 import {
   dropTargetForElements,
@@ -59,10 +60,22 @@ const TierRow: React.FC<TierRowProps> = ({
 }) => {
   const scrollableRef = useRef<HTMLDivElement | null>(null);
   const outerFullWidthRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const [state, setState] = useState<TTierRowState>(idle);
+  const [readOnly, setReadOnly] = useState(true);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onTierNameChange(tier.position, e.target.value);
+  };
+
+  const toggleEditMode = () => {
+    setReadOnly((prev) => {
+      if (prev === true) {
+        // Focus the input when entering edit mode
+        inputRef.current?.focus();
+      }
+      return !prev;
+    });
   };
 
   useEffect(() => {
@@ -154,7 +167,7 @@ const TierRow: React.FC<TierRowProps> = ({
         className={`flex flex-col min-h-[90px] ${stateStyles[state.type]}`}
       >
         <div 
-          className="w-full rounded-t-lg flex items-center justify-center p-2"
+          className="w-full rounded-t-lg flex items-center justify-between p-2 group"
           style={{ backgroundColor: tier.color }}
         >
           <input 
@@ -162,7 +175,16 @@ const TierRow: React.FC<TierRowProps> = ({
             value={tier.name} 
             onChange={handleNameChange}
             className="bg-transparent text-white font-bold text-center w-full focus:outline-none"
+            readOnly={readOnly}
+            ref={inputRef}
           />
+          <button 
+            onClick={toggleEditMode} 
+            className="ml-2 text-white hover:text-gray-300 focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label={readOnly ? "Edit Tier Name" : "Save Tier Name"}
+          >
+            {readOnly ? <FaEdit className="w-5 h-5" /> : <FaCheck className="w-5 h-5" />}
+          </button>
         </div>
         <div 
           ref={scrollableRef}

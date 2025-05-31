@@ -3,6 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Chart, Tier, TierList, ChartFilter } from '@shared/schema';
 import TierRow from '@/components/TierRow';
 import TierListHeader from '@/components/TierListHeader';
+import AvailableCharts from '@/components/AvailableCharts';
 import ExportModal from '@/components/modals/ExportModal';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -49,13 +50,7 @@ const TierListMaker: React.FC = () => {
         id: 1,
         name: `${chartFilter.mode === 'singles' ? 'S' : 'D'}${chartFilter.level} Tier List`,
         mode: 'singles',
-        tiers: [
-            { name: "Impossible", color: "#EF4444", position: 1, charts: [] },
-            { name: "Hard", color: "#F97316", position: 2, charts: [] },
-            { name: "Medium", color: "#EAB308", position: 3, charts: [] },
-            { name: "Easy", color: "#84CC16", position: 4, charts: [] },
-            { name: "Free", color: "#22C55E", position: 5, charts: [] },
-        ],
+        tiers: DEFAULT_TIERS,
       };
       setTierLists([defaultTierList]);
       setActiveTierList(defaultTierList);
@@ -103,7 +98,7 @@ const TierListMaker: React.FC = () => {
   useEffect(() => {
     return monitorForElements({
       canMonitor({ source }) {
-        return source.data.type === 'chart' || source.data.type === 'tier';
+        return source.data.type === 'chart' || source.data.type === 'tier' || source.data.type === 'available';
       },
       onDrop({ source, location }) {
         const destination = location.current.dropTargets[0];
@@ -207,6 +202,28 @@ const TierListMaker: React.FC = () => {
               tl.id === activeTierList.id ? updatedTierList : tl
             )
           );
+        }
+
+        if (source.data.type === 'chart' && destination.data.type === 'available') {
+          const chart: Chart = source.data.chart;
+          if (!activeTierList) return;
+          if (charts.some((c: Chart) => c.id === chart.id)) return;
+
+          // remove the chart from the active tier list row
+          const updatedTiers = activeTierList.tiers.map(t => ({
+            ...t,
+            charts: t.charts.filter((c: Chart) => c.id !== chart.id)
+          }));
+          const updatedTierList = { ...activeTierList, tiers: updatedTiers }
+          setActiveTierList(updatedTierList);
+          setTierLists(prevTierLists => 
+            prevTierLists.map(tl => 
+              tl.id === activeTierList.id ? updatedTierList : tl
+            )
+          );
+
+          // add the chart back to the available charts
+          setCharts(prevCharts => [source.data.chart, ...prevCharts]);
         }
       },
     });
@@ -328,6 +345,17 @@ const TierListMaker: React.FC = () => {
     );
   };
 
+  // Handle chart move back to available charts
+  const handleChartMoveBack = (chartId: number) => {
+    if (!activeTierList) return;
+    if (charts.some((c: Chart) => c.id === chartId)) return;
+    const updatedTiers = activeTierList.tiers.map(tier => ({
+      ...tier,
+      charts: tier.charts.filter((chart: Chart) => chart.id !== chartId)
+    }));
+    setActiveTierList({ ...activeTierList, tiers: updatedTiers });
+  };
+
   // Filter charts based on the current filter settings
   const filteredCharts = charts.filter(chart => {
     if (chartFilter.mode === 'singles') {
@@ -412,26 +440,11 @@ const TierListMaker: React.FC = () => {
           </div>
 
           {/* Chart Library Panel for Bottom Placement */}
-          <div className="mt-8 bg-white rounded-lg shadow-md">
-            <h3 className="p-3 font-poppins font-semibold text-lg border-b">Available Charts</h3>
-            <div className="p-4 flex flex-wrap gap-3 min-h-[120px]">
-              {filteredCharts.length > 0 ? (
-                filteredCharts.map((chart, index) => (
-                  <ChartCard
-                    key={chart.id}
-                    chart={chart}
-                    index={index}
-                    mode={chartFilter.mode}
-                    level={chartFilter.level}
-                  />
-                ))
-              ) : (
-                <div className="text-center text-gray-500 py-4 w-full">
-                  No charts found. Try adjusting level filter.
-                </div>
-              )}
-            </div>
-          </div>
+          <AvailableCharts
+            filteredCharts={filteredCharts}
+            chartFilter={chartFilter}
+            onChartDrop={handleChartMoveBack}
+          ></AvailableCharts>
         </section>
       </main>
 
